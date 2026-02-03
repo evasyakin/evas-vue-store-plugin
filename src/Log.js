@@ -1,0 +1,80 @@
+/**
+ * Logger.
+ * @package evas-vue-store-plugin
+ * @author Egor Vasyakin <egor@evas-php.com>
+ * @license CC-BY-4.0
+ */
+import { EvasVueStorePlugin } from './index.js'
+
+export const logger = new class {
+    
+    get debug() {
+        return EvasVueStorePlugin.debug
+    }
+
+    isArguments(item) {
+        return Object.prototype.toString.call(item) === '[object Arguments]';
+    }
+
+    line(...messages) {
+        if (this.debug) console.log(...messages)
+    }
+
+    keyValue = (key, value) => {
+        if (this.debug) console.log('%c%s =%O', 'color: #fff', key, value)
+    }
+
+    group(...messages) {
+        if (this.debug) console.groupCollapsed(...messages)
+    }
+
+    groupEnd() {
+        if (this.debug) console.groupEnd()
+    }
+
+    returnGroup(cb, ...messages) {
+        // this.group(...messages)
+        this.line(...messages)
+        let res = cb()
+        // this.groupEnd()
+        return res
+    }
+
+    arguments(args) {
+        if (!this.debug) return
+        if ([undefined, null].includes(args)) return
+        let count = Object.keys(args)?.length || 0
+        let templ = `Arguments (${count})`
+        count ? this.returnGroup(() => {
+            if (this.isArguments(args)) args = Array.from(args)
+            Object.entries(args).forEach(([i, arg]) => {
+                this.line(i, arg)
+            })
+        }, templ) : this.line(templ)
+    }
+
+    methodCall(name, args, cb) {
+        let templ = [
+            '%cevas-vue-store-plugin %c%s()%c', 
+            'color: #7f9adc',
+            'color: #209761',
+            name,
+            ''
+        ]
+        if ('function' === typeof cb) {
+            return this.returnGroup(() => {
+                this.arguments(args)
+                return cb()
+            }, ...templ)
+        } else {
+            if (args) {
+                templ.push(... (Array.isArray(args) || this.isArguments(args) ? args : [args]))
+            }
+            this.line(...templ)
+        }
+    }
+}
+
+// class LogGroup {
+//     // 
+// }
