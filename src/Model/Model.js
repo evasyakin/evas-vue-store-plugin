@@ -7,6 +7,14 @@
 
 import { logger } from '../Log.js'
 import { Query } from '../Query.js'
+import { setModelApi } from './Model.api.js'
+import { setModelCrud } from './Model.crud.js'
+import { setModelFieldsDisplay } from './Model.fields.display.js'
+import { setModelFields } from './Model.fields.js'
+import { setModelRelations } from './Model.relations.js'
+import { setModelState } from './Model.state.js'
+import { setModelStore } from './Model.store.js'
+import { setModelValidate } from './Model.validate.js'
 
 export class Model {
     static entityName = null
@@ -110,14 +118,14 @@ Model.prototype._$fillRelatons = function (data) {
 Model.prototype.$beforeNew = function () {}
 
 // Расширения модели
-require('./Model.api.js')
-require('./Model.crud.js')
-require('./Model.fields.js')
-require('./Model.fields.display.js')
-require('./Model.relations.js')
-require('./Model.state.js')
-require('./Model.store.js')
-require('./Model.validate.js')
+setModelApi(Model)
+setModelCrud(Model)
+setModelFields(Model)
+setModelFieldsDisplay(Model)
+setModelRelations(Model)
+setModelState(Model)
+setModelStore(Model)
+setModelValidate(Model)
 
 // Расширение модели поддержкой запросов к хранилищу
 Model.query = function () {

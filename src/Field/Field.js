@@ -8,7 +8,6 @@
 // import { FieldBuilder } from './FieldBuilder.js'
 import { Fieldable } from './Fieldable.js'
 // раширение поля поддержкой валидации
-// require('./Field.validate.js')
 import { setFieldValidate } from './Field.validate.js'
 
 export class Field extends Fieldable {
