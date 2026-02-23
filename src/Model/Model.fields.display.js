@@ -129,16 +129,11 @@ export function setModelFieldsDisplay(Model) {
     Model.prototype.$fieldNamesGrouping = function () {
         this.$displayRules()
         logger.methodCall(`${this.$entityNameWithId}.$fieldNamesGrouping`, null, () => {
-            if (!this._fieldNamesGrouping) {
-                this._fieldNamesGrouping = this.$setFieldGrouping() ?? {}
-                if (!(this._fieldNamesGrouping instanceof Group)) { 
-                    this._fieldNamesGrouping = new Block(this._fieldNamesGrouping)
-                }
-                this._fieldNamesGrouping.setFields(this)
-                logger.line('set this._fieldNamesGrouping')
-            } else {
-                logger.line('get cached this._fieldNamesGrouping')
+            this._fieldNamesGrouping = this.$setFieldGrouping() ?? {}
+            if (!(this._fieldNamesGrouping instanceof Group)) { 
+                this._fieldNamesGrouping = new Block(this._fieldNamesGrouping)
             }
+            this._fieldNamesGrouping.setFields(this)
             logger.keyValue('this._fieldNamesGrouping', this._fieldNamesGrouping)
         })
         return this._fieldNamesGrouping
