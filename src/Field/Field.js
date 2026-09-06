@@ -70,13 +70,25 @@ export class Field extends Fieldable {
      */
     convertType(value) {
         if (!this.required && this.isEmptyValue(value)) return value
-        if (this.isArrayType) return Array.isArray(value) ? Array.from(value) : value;
+        if (this.isArrayType) {
+            return Array.isArray(value)
+                ? this?.itemOf 
+                    ? value.map(val => this.itemOf.convertTypeWithDefault(val))
+                    : Array.from(value) 
+                : value
+        }
         if (this.isStringType) return value == null ? '' : String(value).trim()
         if (this.isNumberType) {
             let newValue = Number(value)
             return isNaN(newValue) ? value : newValue
         }
         if (this.isBooleanType) return Boolean(value)
+        if (this.type === 'object' && !!value) {
+            return Object.fromEntries(Object.entries(value).map(([key, val]) => [
+                key,
+                this.itemOf?.[key] ? this.itemOf[key].convertTypeWithDefault(val) : val
+            ]))
+        }
         // throw new Error(`Field "${this._name}" has unknown type: ${this._type}`)
         return value;
     }
