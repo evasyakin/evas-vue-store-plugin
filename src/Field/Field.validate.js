@@ -140,6 +140,21 @@ export function setFieldValidate(field) {
             this.same && this.validateRequired(value) && !this.isEmptyValue(value)
             && (!values?.[this.same] || value !== values?.[this.same])
         ) ? this.setError('same') : true
+
+        // let checkSame = true
+        // !this.same && values?.constructor && values.constructor.eachFields(field => {
+        //     if (field.same === this.name && !field.isValid(values[field.name], values)) {
+        //         checkSame = false
+        //         values.constructor.handleValidateError(field, field.error)
+        //         values.$errors.push(field.error)
+        //     }
+        // }) 
+        
+        // return (
+        //     this.same && this.validateRequired(value) 
+        //     && (!this.isEmptyValue(value) || !this.isEmptyValue(values?.[this.same]))
+        //     && (!values?.[this.same] || value !== values?.[this.same])
+        // ) ? this.setError('same') : checkSame
     }
 
     /**
