@@ -53,16 +53,44 @@ export function setModelState(Model) {
      * @return Boolean
      */
     Model.prototype.$isDirtyField = function (name) {
-        let stateValue = this.$state[name]
-        let value = this[name]
-        if (Array.isArray(stateValue) && Array.isArray(value)) {
-            return JSON.stringify(stateValue) !== JSON.stringify(value)
-        } else if (typeof(stateValue) === 'object' && ![null, undefined].includes(stateValue)) {
-            return JSON.stringify(stateValue) !== JSON.stringify(value)
-        } else if ([null, undefined].includes(stateValue) && value === '') {
-            return false
+        let stateValue
+        let value
+        if (fieldPath) {
+            const path = [...fieldPath, name].join('->')
+            stateValue = this.$getFieldValue(path, this.$state)
+            value = this.$getFieldValue(path)
+        } else {
+            stateValue = this.$state[name]
+            value = this[name]
         }
+        if ([null, undefined].includes(stateValue) && value === '') return false
         return stateValue !== value
+    }
+
+    /**
+     * Получение значения поля
+     * @param { String } name имя поля
+     * @param { Object! } source данные полей
+     * @returns Any
+     */
+    Model.state.$getFieldValue = function (name, source) {
+        let reference = source || this.$getData()
+        const path = `${name ?? ''}`.split('->')
+        for (const key of path) {
+            if (reference == null || typeof reference !== 'object') {
+                return
+            }
+            let validKey = key
+            if (Array.isArray(reference)) {
+                const num = Number(key)
+                if (!Number.isNaN(num)) {
+                    validKey = num
+                }
+            }
+            reference = reference[validKey]
+        }
+
+        return reference
     }
 
     /**
@@ -107,12 +135,30 @@ export function setModelState(Model) {
      */
     Model.prototype.$dirtyFields = function (names) {
         let dirty = []
-        this.constructor.eachFields((field) => {
-            if (this.$isDirtyField(field.name)) dirty.push(field.name)
-        }, names)
-        this.constructor.eachRelations((relation) => {
-            if (this.$isDirtyRelateds(relation)) dirty.push(relation.name)
-        }, names)
+        const onFieldFn = field => {
+            if (!field) return
+            if (field.type === 'array') {
+                this[field.name]?.forEach((_, arrayIndex) => {
+                    const dirtyArrayFields = this.$dirtyFields([field.itemOf], [...fieldPath, field.name, arrayIndex])
+                    dirty.push(...dirtyArrayFields)
+                })
+            } else if (field.type === 'object') {
+                const dirtyObjectFields = this.$dirtyFields(
+                    Object.values(field.itemOf),
+                    !fieldPath.includes(field.name) ? [...fieldPath, field.name] : fieldPath
+                )
+                dirty.push(...dirtyObjectFields)
+            } else if (this.$isDirtyField(field.name, fieldPath)) dirty.push([...fieldPath, field.name].join('->'))
+        }
+        if (Array.isArray(names) && !(names.at(0) instanceof String)) {
+            names.forEach(onFieldFn)
+        } else {
+            this.constructor.eachFields(callBack, names)
+            this.constructor.eachRelations(relation => {
+                if (this.$isDirtyRelateds(relation)) dirty.push(relation.name)
+            }, names)
+        }
+
         return dirty
     }
 
@@ -121,7 +167,12 @@ export function setModelState(Model) {
      */
     Object.defineProperty(Model.prototype, '$dirtyData', { get: function () {
         let data = {}
-        this.$dirtyFields().forEach((name) => (data[name] = this[name]))
+        this.$dirtyFields().forEach(name => {
+            const path = `${name ?? ''}`.split('->')
+            const key = path?.at(0) ?? name
+            data[key] = this[key]
+            return data
+        })
         return data
     }})
 }

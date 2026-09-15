@@ -111,12 +111,13 @@ export function setModelFields(Model) {
     Model.field = function (name) {
         // return this.fields()[name]
         let reference = this.fields()
-        const path = (`${name ?? ''}`).split('->')
+        const path = `${name ?? ''}`.split('->')
 
         path.forEach(key => {
             while (reference instanceof Fieldable) {
                 reference = reference.itemOf
             }
+            if (!Number.isNaN(Number(key))) return
             reference = reference[key]
         })
 

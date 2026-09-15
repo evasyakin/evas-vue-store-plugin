@@ -105,27 +105,14 @@ export function setModelValidate(Model) {
         return logger.methodCall(`${this.$entityNameWithId}.$validate`, arguments, () => {
             if (!fieldNames) fieldNames = this.$fieldNamesForValidate()
             this.$clearErrors()
-            this.constructor.eachFields((field) => {
+            fieldNames.forEach(fieldName => {
+                const field = this.$field(fieldName)
                 if (!(field instanceof VariableField || field instanceof Field)) return
-                // console.warn(field.name, this[field.name])
-
-                if (!field.isValid(this[field.name], this)) {
+                if (!field.isValid(this.$getFieldValue(fieldName), this)) {
                     this.constructor.handleValidateError(field, field.error)
                     this.$errors.push(field.error)
                 }
-
-                // if (Array.isArray(field.value) && field.itemOf) {
-                //     this[field.name] = field.value = field.value.map(item => {
-                //         // field.itemOf.name = `${field.name} [${index}]`
-                //         if (!field.itemOf.isValid(item, this)) {
-                //             this.constructor.handleValidateError(field.itemOf, field.itemOf.error)
-                //             this.$errors.push(field.itemOf.error)
-                //         }
-                //         return field.itemOf.convertType(item)
-                //     })
-                // }
-
-            }, fieldNames)
+            })
             return this.$errors.length < 1
         })
     }
