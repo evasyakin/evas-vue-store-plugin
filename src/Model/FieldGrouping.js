@@ -107,7 +107,11 @@ export class Group {
         this.eachItems((key, item) => {
             if (item instanceof Group) {
                 if (!(item instanceof Tab) || item.selected) {
-                    fields = fields.concat(item.concatFields())
+                    if (item instanceof List) {
+                        fields = fields.concat(item.concatFields(key))
+                    } else {
+                        fields = fields.concat(item.concatFields())
+                    }
                 }
             } else {
                 fields.push(item)
@@ -173,13 +177,17 @@ export class Block extends Group {
     setItems(items) {
         this.setItemsInBlock(items)
     }
-    // setRegular(value = true) {
-    //     this.regular = value
-    // }
 }
 
 export class List extends Block {
     type = 'list'
+    concatFields(listCount) {
+        let fields = []
+        this.eachItems((key, item) => {
+            fields.push(`${this.name}->${listCount}->${item.name}`)
+        })
+        return fields
+    }
 }
 
 export class Addon{
